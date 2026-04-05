@@ -1,1 +1,104 @@
 
+<!DOCTYPE html><html>
+<head>
+<title>BharatGaav Connect</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script><script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script><style>
+body{font-family:Arial;background:#f5f5f5}
+.screen{display:none;padding:20px}
+.active{display:block}
+button{padding:10px;margin:5px;width:90%;background:green;color:white;border:none}
+input{padding:10px;margin:5px;width:90%}
+.card{background:white;padding:10px;margin:10px;border-radius:8px}
+</style></head><body><!-- LOGIN --><div id="login" class="screen active">
+<h2>Login / Register</h2>
+<input id="email" placeholder="Email">
+<input id="password" placeholder="Password" type="password"><button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
+
+</div><!-- HOME --><div id="home" class="screen">
+<h2>BharatGaav Connect 🇮🇳</h2>
+<button onclick="show('add')">Add Service</button>
+<button onclick="showList()">View 
+<button onclick="logout()">Logout</button>
+</div><!-- ADD --><div id="add" class="screen">
+<input id="name" placeholder="Name">
+<input id="service" placeholder="Service">
+<input id="phone" placeholder="Phone">
+<input id="village" placeholder="Village"><button onclick="add()">Submit</button>
+
+</div><!-- LIST --><div id="list" class="screen">
+<div id="data"></div>
+<button onclick="show('home')">Back</button>
+</div><script>
+// 🔥 FIREBASE CONFIG (paste your own)
+const firebaseConfig = {
+  apiKey: "PASTE_HERE",
+  authDomain: "PASTE_HERE",
+  projectId: "PASTE_HERE"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+function show(id){
+ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+}
+
+// REGISTER
+function register(){
+ auth.createUserWithEmailAndPassword(email.value,password.value)
+ .then(()=>alert("Registered"));
+}
+
+// LOGIN
+function login(){
+ auth.signInWithEmailAndPassword(email.value,password.value)
+ .then(()=>show("home"))
+ .catch(()=>alert("Wrong details"));
+}
+
+// LOGOUT
+function logout(){
+ auth.signOut();
+ show("login");
+}
+
+// ADD DATA
+function add(){
+ db.collection("services").add({
+   name:name.value,
+   service:service.value,
+   phone:phone.value,
+   village:village.value,
+   user:auth.currentUser.email
+ });
+ alert("Added");
+}
+
+// LOAD DATA
+async function showList(){
+ show("list");
+ data.innerHTML="";
+ let snap = await db.collection("services").get();
+ snap.forEach(doc=>{
+   let s=doc.data();
+   data.innerHTML+=`<div class="card">
+   <b>${s.service}</b><br>
+   ${s.name}<br>
+   📍 ${s.village}<br>
+   📞 ${s.phone}<br>
+   👤 ${s.user}
+   </div>`;
+ });
+}
+
+// AUTO LOGIN CHECK
+auth.onAuthStateChanged(user=>{
+ if(user){show("home");}
+ else{show("login");}
+});
+</script></body>
+</html>
